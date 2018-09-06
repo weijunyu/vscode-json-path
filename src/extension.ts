@@ -1,15 +1,11 @@
 import * as vscode from 'vscode';
 import DocProvider from './DocProvider';
 import uriTools from './uriTools';
+
+const jsonPath = require('./jsonPath');
 const _ = require('lodash');
 
 export function activate(context: vscode.ExtensionContext) {
-    // const docProvider = new DocProvider();
-
-    // let providerRegistrations = vscode.Disposable.from(
-    //     vscode.workspace.registerTextDocumentContentProvider(DocProvider.scheme, docProvider)
-    // )
-
     let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonGet', editor => {
         // editor is current active editor
         return Promise.resolve().then(getInputPath) // Use native promise to start chain since vscode's Thenable type doesn't support .catch
@@ -20,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (!editor) {
                     throw new Error("No active editor");
                 }
-                return getJsonContent(editor, inputPath)
+                return getJsonContent(editor, inputPath);
             })
             .then(content => {
                 if (!content) {
@@ -31,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
                     vscode.Disposable.from(
                         vscode.workspace.registerTextDocumentContentProvider(DocProvider.scheme, JsonSnippetDocument)
                     )
-                )
+                );
                 let uri = uriTools.encodeContent(editor.document.uri, content);
                 return vscode.workspace.openTextDocument(uri);
             })
@@ -45,12 +41,10 @@ export function activate(context: vscode.ExtensionContext) {
             })
             .catch(error => {
                 vscode.window.showWarningMessage(error.message);
-            })
+            });
     });
 
     context.subscriptions.push(
-        // docProvider,
-        // providerRegistrations,
         jsonGetCommand
     );
 }
@@ -60,7 +54,7 @@ function getInputPath(): Thenable<string | undefined> {
         prompt: "Enter JSON path",
         placeHolder: "a[0].b.c",
         ignoreFocusOut: true
-    })
+    });
 }
 
 function getJsonContent(editor: vscode.TextEditor, inputPath: string): object {
@@ -78,5 +72,5 @@ function getJsonContent(editor: vscode.TextEditor, inputPath: string): object {
         }
         contents = JSON.parse(doc.getText());
     }
-    return _.get(contents, inputPath);
+    return jsonPath(contents, inputPath);
 }
