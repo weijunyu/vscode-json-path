@@ -1,6 +1,6 @@
 {
-    "name": "json-getter",
-    "displayName": "json-getter",
+    "name": "vscode-json-path",
+    "displayName": "JSON Path",
     "description": "",
     "version": "0.0.1",
     "publisher": "placeholder",
