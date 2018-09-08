@@ -1,8 +1,8 @@
 {
     "name": "vscode-json-path",
     "displayName": "JSON Path",
-    "description": "",
-    "version": "0.0.1",
+    "description": "Given a JSON path, extracts data out of JSON structures",
+    "version": "1.0.0",
     "publisher": "placeholder",
     "engines": {
         "vscode": "^1.26.0"
@@ -11,13 +11,13 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.jsonGet"
+        "onCommand:extension.jsonPath"
     ],
     "main": "./out/extension",
     "contributes": {
         "commands": [
             {
-                "command": "extension.jsonGet",
+                "command": "extension.jsonPath",
                 "title": "Get JSON at specified path"
             }
         ]
@@ -30,10 +30,11 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "dependencies": {
-        "lodash": "^4.17.10"
+        "lodash": "^4.17.10",
+        "jsonpath": "^1.0.0"
     },
     "devDependencies": {
-        "typescript": "^2.6.1",
+        "typescript": "^3.0.0",
         "vscode": "^1.1.21",
         "tslint": "^5.8.0",
         "@types/node": "^8.10.25",

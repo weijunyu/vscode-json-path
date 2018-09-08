@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 import DocProvider from './DocProvider';
 import uriTools from './uriTools';
 
-const jsonPath = require('./jsonPath');
+const jsonPath = require('jsonpath');
 const _ = require('lodash');
 
 export function activate(context: vscode.ExtensionContext) {
-    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonGet', editor => {
+    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', editor => {
         // editor is current active editor
         return Promise.resolve().then(getInputPath) // Use native promise to start chain since vscode's Thenable type doesn't support .catch
             .then((inputPath: string | undefined) => {
@@ -72,5 +72,5 @@ function getJsonContent(editor: vscode.TextEditor, inputPath: string): object {
         }
         contents = JSON.parse(doc.getText());
     }
-    return jsonPath(contents, inputPath);
+    return jsonPath.query(contents, inputPath);
 }

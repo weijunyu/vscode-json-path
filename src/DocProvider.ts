@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export default class DocProvider implements vscode.TextDocumentContentProvider {
-    static scheme = 'json-getter';
+    static scheme = 'jsonpath';
 
     private content: object;
 
