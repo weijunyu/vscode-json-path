@@ -6,7 +6,7 @@ const jsonPath = require('jsonpath');
 const _ = require('lodash');
 
 export function activate(context: vscode.ExtensionContext) {
-    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', editor => {
+    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', (editor: vscode.TextEditor) => {
         // editor is current active editor
         return Promise.resolve().then(getInputPath) // Use native promise to start chain since vscode's Thenable type doesn't support .catch
             .then((inputPath: string | undefined) => {
@@ -54,7 +54,14 @@ function getInputPath(): Thenable<string | undefined> {
         prompt: "Enter JSON path",
         placeHolder: "a[0].b.c",
         ignoreFocusOut: true
-    });
+    })
+        .then((inputPath: string | undefined) => {
+            if (!inputPath || inputPath === '') {
+                return getInputPath();
+            } else {
+                return inputPath;
+            }
+        });
 }
 
 function getJsonContent(editor: vscode.TextEditor, inputPath: string): object {
