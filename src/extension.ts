@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
                         vscode.workspace.registerTextDocumentContentProvider(DocProvider.scheme, JsonSnippetDocument)
                     )
                 );
-                let uri = uriTools.encodeContent(editor.document.uri, content);
+                let uri = uriTools.encodeContent(editor.document.uri);
                 return vscode.workspace.openTextDocument(uri);
             })
             .then(doc => {

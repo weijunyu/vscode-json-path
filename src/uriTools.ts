@@ -6,15 +6,16 @@ export default {
     decodeContent
 };
 
-function encodeContent(documentUri: vscode.Uri, jsonContent: object): vscode.Uri {
-    let encodedQuery = JSON.stringify({ uri: documentUri.toString(), content: jsonContent });
-    return vscode.Uri.parse(`${DocProvider.scheme}:json.getter?${encodedQuery}`);
+function encodeContent(documentUri: vscode.Uri): vscode.Uri {
+    let query = `documentUri=${documentUri.toString()}`;
+    return vscode.Uri.parse(`${DocProvider.scheme}:json.getter?${query}`);
 }
 
-function decodeContent(encodedUri: vscode.Uri): {documentUri: vscode.Uri, jsonContent: object} {
-    let decodedQuery: { uri: string, content: object } = JSON.parse(encodedUri.query);
-    return {
-        documentUri: vscode.Uri.parse(decodedQuery.uri),
-        jsonContent: decodedQuery.content
-    };
+function decodeContent(encodedUri: vscode.Uri): object {
+   let query = encodedUri.query;
+   let returnKey = query.substring(0, query.indexOf('='));
+   let returnValue = query.substring(query.indexOf('=') + 1);
+   return {
+       [returnKey]: returnValue
+   };
 }
