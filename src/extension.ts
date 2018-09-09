@@ -7,21 +7,11 @@ const _ = require('lodash');
 
 export function activate(context: vscode.ExtensionContext) {
     let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', (editor: vscode.TextEditor) => {
-        // editor is current active editor
-        return Promise.resolve().then(getInputPath) // Use native promise to start chain since vscode's Thenable type doesn't support .catch
-            .then((inputPath: string | undefined) => {
-                if (!inputPath || inputPath === '') {
-                    throw new Error("No JSON path specified");
-                }
-                if (!editor) {
-                    throw new Error("No active editor");
-                }
-                return getJsonContent(editor, inputPath);
-            })
+        // editor = current active editor
+        return Promise.resolve() // Use native promise to start chain since vscode's Thenable type doesn't support .catch
+            .then(getInputPath)
+            .then((inputPath: string) => getJsonContent(editor, inputPath))
             .then(content => {
-                if (!content) {
-                    throw new Error('Path not found in JSON object');
-                }
                 let JsonSnippetDocument = new DocProvider(content);
                 context.subscriptions.push(
                     vscode.Disposable.from(
@@ -40,7 +30,11 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             })
             .catch(error => {
-                vscode.window.showWarningMessage(error.message);
+                let errorMessage = error.message;
+                if (errorMessage.indexOf('Parse error') !== -1) {
+                    errorMessage = 'Error parsing JSON path. Please make sure that it is a valid JSON path expression.'
+                }
+                vscode.window.showWarningMessage(errorMessage);
             });
     });
 
@@ -49,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-function getInputPath(): Thenable<string | undefined> {
+function getInputPath(): Thenable<string> {
     return vscode.window.showInputBox({
         prompt: "Enter JSON path",
         placeHolder: "a[0].b.c",
@@ -64,7 +58,7 @@ function getInputPath(): Thenable<string | undefined> {
         });
 }
 
-function getJsonContent(editor: vscode.TextEditor, inputPath: string): object {
+function getJsonContent(editor: vscode.TextEditor, inputPath: string): Array<string> {
     // If user has selection, parse that.
     // Else, parse whole JSON file.
     let selection = editor.selection;
