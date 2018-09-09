@@ -6,16 +6,14 @@ export default {
     decodeContent
 };
 
-function encodeContent(documentUri: vscode.Uri): vscode.Uri {
-    let query = `documentUri=${documentUri.toString()}`;
-    return vscode.Uri.parse(`${DocProvider.scheme}:json.getter?${query}`);
+function encodeContent(documentUri: vscode.Uri, content: object): vscode.Uri {
+    let query = JSON.stringify({
+        documentUri: documentUri,
+        content: content
+    });
+    return vscode.Uri.parse(`${DocProvider.scheme}://json-path?${query}`);
 }
 
-function decodeContent(encodedUri: vscode.Uri): object {
-   let query = encodedUri.query;
-   let returnKey = query.substring(0, query.indexOf('='));
-   let returnValue = query.substring(query.indexOf('=') + 1);
-   return {
-       [returnKey]: returnValue
-   };
+function decodeContent(encodedUri: vscode.Uri): {documentUri: vscode.Uri, content: object} {
+    return JSON.parse(encodedUri.query);
 }

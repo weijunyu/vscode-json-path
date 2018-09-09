@@ -6,19 +6,20 @@ const jsonPath = require('jsonpath');
 const _ = require('lodash');
 
 export function activate(context: vscode.ExtensionContext) {
+    let JsonDocProvider = new DocProvider();
+    context.subscriptions.push(
+        vscode.Disposable.from(
+            vscode.workspace.registerTextDocumentContentProvider(DocProvider.scheme, JsonDocProvider)
+        )
+    );
+
     let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', (editor: vscode.TextEditor) => {
         // editor = current active editor
         return Promise.resolve() // Use native promise to start chain since vscode's Thenable type doesn't support .catch
             .then(getInputPath)
             .then((inputPath: string) => getJsonContent(editor, inputPath))
             .then(content => {
-                let JsonSnippetDocument = new DocProvider(content);
-                context.subscriptions.push(
-                    vscode.Disposable.from(
-                        vscode.workspace.registerTextDocumentContentProvider(DocProvider.scheme, JsonSnippetDocument)
-                    )
-                );
-                let uri = uriTools.encodeContent(editor.document.uri);
+                let uri = uriTools.encodeContent(editor.document.uri, content);
                 return vscode.workspace.openTextDocument(uri);
             })
             .then(doc => {
