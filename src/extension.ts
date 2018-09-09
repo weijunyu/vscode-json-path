@@ -32,7 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
             .catch(error => {
                 let errorMessage = error.message;
                 if (errorMessage.indexOf('Parse error') !== -1) {
-                    errorMessage = 'Error parsing JSON path. Please make sure that it is a valid JSON path expression.'
+                    errorMessage = 'JSON path parse error. Make sure JSON path expression is valid:\n' + error.message;
+                } else if (errorMessage.indexOf('Lexical error') !== -1) {
+                    errorMessage = 'JSON path lexical error. Make sure JSON path expression is valid:\n' + error.message;
                 }
                 vscode.window.showWarningMessage(errorMessage);
             });
