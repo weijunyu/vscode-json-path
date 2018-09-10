@@ -1,4 +1,4 @@
-# json-getter README
+# [jsonpath](https://github.com/dchester/jsonpath) extension for [Visual Studio Code](https://code.visualstudio.com/)
 
 ## Features
 
