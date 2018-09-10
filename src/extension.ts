@@ -7,6 +7,7 @@ const _ = require('lodash');
 
 export function activate(context: vscode.ExtensionContext) {
     let JsonDocProvider = new DocProvider();
+    // Register scheme
     context.subscriptions.push(
         vscode.Disposable.from(
             vscode.workspace.registerTextDocumentContentProvider(DocProvider.scheme, JsonDocProvider)
@@ -15,48 +16,87 @@ export function activate(context: vscode.ExtensionContext) {
 
     let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', async (editor: vscode.TextEditor) => {
         try {
-            let inputPath = await getInputPath();
-            let jsonContent = getJsonContent(editor, inputPath);
-            let uri = uriTools.encodeContent(editor.document.uri, jsonContent);
-            let jsonDoc = await vscode.workspace.openTextDocument(uri);
-            if (editor.viewColumn && editor.viewColumn < 4) {
-                vscode.window.showTextDocument(jsonDoc, {
-                    preserveFocus: true,
-                    viewColumn: editor.viewColumn + 1
-                });
-            }
+            let inputBoxOptions: Partial<InputBoxParameters> = {
+                title: 'JSON path',
+                prompt: 'Enter JSON path',
+                placeholder: '$.a[0].b.c',
+                ignoreFocusOut: true
+            };
+            await searchAndDisplay(editor, inputBoxOptions);
         } catch (error) {
-            let errorMessage = error.message;
-            if (errorMessage.indexOf('Parse error') !== -1) {
-                errorMessage = 'JSON path parse error. Make sure JSON path expression is valid:\n' + error.message;
-            } else if (errorMessage.indexOf('Lexical error') !== -1) {
-                errorMessage = 'JSON path lexical error. Make sure JSON path expression is valid:\n' + error.message;
-            }
-            vscode.window.showWarningMessage(errorMessage);
+            vscode.window.showErrorMessage(error.message);
         }
     });
 
+    // Register command
     context.subscriptions.push(
         jsonGetCommand
     );
 }
 
-async function getInputPath(): Promise<string> {
-    return vscode.window.showInputBox({
-        prompt: "Enter JSON path",
-        placeHolder: "$.a[0].b.c",
-        ignoreFocusOut: true
-    })
-        .then((inputPath: string | undefined) => {
-            if (!inputPath || inputPath === '') {
-                return getInputPath();
-            } else {
-                return inputPath;
-            }
-        });
+interface InputBoxParameters {
+    title: string;
+    step: number;
+    totalSteps: number;
+    value: string;
+    prompt: string;
+    placeholder: string;
+    ignoreFocusOut: boolean;
 }
 
-function getJsonContent(editor: vscode.TextEditor, inputPath: string): Array<string> {
+async function searchAndDisplay(editor: vscode.TextEditor, inputBoxOptions: Partial<InputBoxParameters>) {
+    const disposables: vscode.Disposable[] = [];
+    try {
+        return await new Promise((resolve, reject) => {
+            const inputBox: vscode.InputBox = vscode.window.createInputBox();
+            inputBox.title = inputBoxOptions.title;
+            inputBox.step = inputBoxOptions.step;
+            inputBox.totalSteps = inputBoxOptions.totalSteps;
+            inputBox.value = inputBoxOptions.value || '';
+            inputBox.prompt = inputBoxOptions.prompt;
+            inputBox.placeholder = inputBoxOptions.placeholder;
+            inputBox.ignoreFocusOut = inputBoxOptions.ignoreFocusOut || false;
+
+            let jsonContent: string[] = [];
+
+            disposables.push(
+                inputBox.onDidChangeValue(async text => {
+                    if (text && text.length > 0) {
+                        try {
+                            jsonContent = getJsonContent(editor, text);
+                        } catch (error) {
+                            let errorMessage = error.message;
+                            if (errorMessage.indexOf('Parse error') === -1 && errorMessage.indexOf('Lexical error') === -1) {
+                                vscode.window.showErrorMessage(errorMessage); // JSON path is valid, show unrelated error
+                                reject(errorMessage);
+                            } else {
+                                jsonContent = [];
+                            }
+                        } finally {
+                            let uri = uriTools.encodeContent(editor.document.uri, jsonContent);
+                            let jsonDoc = await vscode.workspace.openTextDocument(uri);
+                            if (editor.viewColumn && editor.viewColumn < 4) {
+                                vscode.window.showTextDocument(jsonDoc, {
+                                    preserveFocus: true,
+                                    viewColumn: editor.viewColumn + 1
+                                });
+                            }
+                        }
+                    }
+                }),
+                inputBox.onDidAccept(async () => {
+                    inputBox.dispose();
+                    resolve(jsonContent);
+                })
+            );
+            inputBox.show();
+        });
+    } finally {
+        disposables.forEach(disposable => disposable.dispose());
+    }
+}
+
+function getJsonContent(editor: vscode.TextEditor, inputPath: string): string[] {
     // If user has selection, parse that.
     // Else, parse whole JSON file.
     let selection = editor.selection;
