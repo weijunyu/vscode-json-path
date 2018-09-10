@@ -2,7 +2,7 @@
     "name": "vscode-json-path",
     "displayName": "JSON Path",
     "description": "Given a JSON path, extracts data out of JSON structures",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "publisher": "placeholder",
     "engines": {
         "vscode": "^1.26.0"
