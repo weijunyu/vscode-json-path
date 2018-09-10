@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 function getInputPath(): Thenable<string> {
     return vscode.window.showInputBox({
         prompt: "Enter JSON path",
-        placeHolder: "a[0].b.c",
+        placeHolder: "$.a[0].b.c",
         ignoreFocusOut: true
     })
         .then((inputPath: string | undefined) => {
