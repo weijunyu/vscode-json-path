@@ -13,32 +13,27 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', (editor: vscode.TextEditor) => {
-        // editor = current active editor
-        return Promise.resolve() // Use native promise to start chain since vscode's Thenable type doesn't support .catch
-            .then(getInputPath)
-            .then((inputPath: string) => getJsonContent(editor, inputPath))
-            .then(content => {
-                let uri = uriTools.encodeContent(editor.document.uri, content);
-                return vscode.workspace.openTextDocument(uri);
-            })
-            .then(doc => {
-                if (editor.viewColumn && editor.viewColumn < 4) {
-                    vscode.window.showTextDocument(doc, {
-                        preserveFocus: true,
-                        viewColumn: editor.viewColumn + 1
-                    });
-                }
-            })
-            .catch(error => {
-                let errorMessage = error.message;
-                if (errorMessage.indexOf('Parse error') !== -1) {
-                    errorMessage = 'JSON path parse error. Make sure JSON path expression is valid:\n' + error.message;
-                } else if (errorMessage.indexOf('Lexical error') !== -1) {
-                    errorMessage = 'JSON path lexical error. Make sure JSON path expression is valid:\n' + error.message;
-                }
-                vscode.window.showWarningMessage(errorMessage);
-            });
+    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', async (editor: vscode.TextEditor) => {
+        try {
+            let inputPath = await getInputPath();
+            let jsonContent = getJsonContent(editor, inputPath);
+            let uri = uriTools.encodeContent(editor.document.uri, jsonContent);
+            let jsonDoc = await vscode.workspace.openTextDocument(uri);
+            if (editor.viewColumn && editor.viewColumn < 4) {
+                vscode.window.showTextDocument(jsonDoc, {
+                    preserveFocus: true,
+                    viewColumn: editor.viewColumn + 1
+                });
+            }
+        } catch (error) {
+            let errorMessage = error.message;
+            if (errorMessage.indexOf('Parse error') !== -1) {
+                errorMessage = 'JSON path parse error. Make sure JSON path expression is valid:\n' + error.message;
+            } else if (errorMessage.indexOf('Lexical error') !== -1) {
+                errorMessage = 'JSON path lexical error. Make sure JSON path expression is valid:\n' + error.message;
+            }
+            vscode.window.showWarningMessage(errorMessage);
+        }
     });
 
     context.subscriptions.push(
@@ -46,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-function getInputPath(): Thenable<string> {
+async function getInputPath(): Promise<string> {
     return vscode.window.showInputBox({
         prompt: "Enter JSON path",
         placeHolder: "$.a[0].b.c",
