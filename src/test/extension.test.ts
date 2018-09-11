@@ -1,22 +1,21 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
-
-// The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
+import * as vscode from 'vscode';
+import uriTools from '../uriTools';
+import DocProvider from '../DocProvider';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-// import * as vscode from 'vscode';
-// import * as myExtension from '../extension';
-
-// Defines a Mocha test suite to group tests of similar kind together
-suite("Extension Tests", function () {
-
-    // Defines a Mocha unit test
-    test("Something 1", function() {
-        assert.equal(-1, [1, 2, 3].indexOf(5));
-        assert.equal(-1, [1, 2, 3].indexOf(0));
+describe('Extension tests', function() {
+    describe('Uri Tools tests', function() {
+        it('can encode URI', function() {
+            let docUri = vscode.Uri.parse('file:///path/to/my/doc.json');
+            let content = {
+                test: 'content'
+            };
+            let encodedUri: vscode.Uri = uriTools.encodeContent(docUri, content);
+            assert.equal(encodedUri.scheme, DocProvider.scheme);
+            assert.equal(encodedUri.query, JSON.stringify({
+                documentUri: docUri,
+                content: content
+            }))
+        });
     });
 });
