@@ -4,7 +4,11 @@
     "description": "Extract data out of JSON structures with JSONPath queries",
     "version": "2.0.0",
     "publisher": "weijunyu",
-    "license": "mit",
+    "author": {
+        "name": "Wei Junyu",
+        "email": "junyuwei@gmail.com"
+    },
+    "license": "MIT",
     "engines": {
         "vscode": "^1.26.0"
     },
