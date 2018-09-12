@@ -3,7 +3,7 @@
     "displayName": "JSONPath Queries",
     "description": "Extract data out of JSON structures with JSONPath queries",
     "version": "2.0.0",
-    "publisher": "placeholder",
+    "publisher": "weijunyu",
     "license": "mit",
     "engines": {
         "vscode": "^1.26.0"
