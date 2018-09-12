@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    let jsonGetCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', async (editor: vscode.TextEditor) => {
+    let jsonPathCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', async (editor: vscode.TextEditor) => {
         try {
             let inputBoxOptions: Partial<InputBoxParameters> = {
                 title: 'JSON path',
@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register command
     context.subscriptions.push(
-        jsonGetCommand
+        jsonPathCommand
     );
 }
 
@@ -57,36 +57,34 @@ async function searchAndDisplay(editor: vscode.TextEditor, inputBoxOptions: Part
             inputBox.placeholder = inputBoxOptions.placeholder;
             inputBox.ignoreFocusOut = inputBoxOptions.ignoreFocusOut || false;
 
-            let jsonContent: string[] = [];
+            let jsonMatches: string[] = [];
 
             disposables.push(
                 inputBox.onDidChangeValue(async text => {
                     if (text && text.length > 0) {
                         try {
-                            jsonContent = getJsonContent(editor, text);
+                            jsonMatches = getJsonMatches(editor, text);
                         } catch (error) {
                             let errorMessage = error.message;
-                            if (errorMessage.indexOf('Parse error') === -1 && errorMessage.indexOf('Lexical error') === -1) {
-                                vscode.window.showErrorMessage(errorMessage); // JSON path is valid, show unrelated error
-                                reject(errorMessage);
+                            if (errorMessage.indexOf('Parse error') > -1 || errorMessage.indexOf('Lexical error') > -1) {
+                                jsonMatches = []; // JSON path invalid, show 0 matches
                             } else {
-                                jsonContent = [];
+                                vscode.window.showErrorMessage(errorMessage);
+                                throw error;
                             }
-                        } finally {
-                            let uri = uriTools.encodeContent(editor.document.uri, jsonContent);
-                            let jsonDoc = await vscode.workspace.openTextDocument(uri);
-                            if (editor.viewColumn && editor.viewColumn < 4) {
-                                vscode.window.showTextDocument(jsonDoc, {
-                                    preserveFocus: true,
-                                    viewColumn: editor.viewColumn + 1
-                                });
-                            }
+                        }
+                        let uri = uriTools.encodeContent(editor.document.uri, jsonMatches);
+                        let jsonDoc = await vscode.workspace.openTextDocument(uri);
+                        if (editor.viewColumn && editor.viewColumn < 4) {
+                            vscode.window.showTextDocument(jsonDoc, {
+                                preserveFocus: true,
+                                viewColumn: editor.viewColumn + 1
+                            });
                         }
                     }
                 }),
                 inputBox.onDidAccept(async () => {
                     inputBox.dispose();
-                    resolve(jsonContent);
                 })
             );
             inputBox.show();
@@ -96,7 +94,7 @@ async function searchAndDisplay(editor: vscode.TextEditor, inputBoxOptions: Part
     }
 }
 
-function getJsonContent(editor: vscode.TextEditor, inputPath: string): string[] {
+function getJsonMatches(editor: vscode.TextEditor, inputPath: string): string[] {
     // If user has selection, parse that.
     // Else, parse whole JSON file.
     let selection = editor.selection;
@@ -106,7 +104,6 @@ function getJsonContent(editor: vscode.TextEditor, inputPath: string): string[] 
     } else {
         let doc = editor.document;
         if (doc.languageId !== 'json') {
-            vscode.window.showWarningMessage('Error: document type is not JSON');
             throw new Error("Document type is not JSON");
         }
         contents = JSON.parse(doc.getText());
