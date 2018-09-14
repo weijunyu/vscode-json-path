@@ -14,23 +14,44 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    let jsonPathCommand = vscode.commands.registerTextEditorCommand('extension.jsonPath', async (editor: vscode.TextEditor) => {
-        try {
-            let inputBoxOptions: Partial<InputBoxParameters> = {
-                title: 'JSON path',
-                prompt: 'Enter JSON path',
-                placeholder: '$.a[0].b.c',
-                ignoreFocusOut: true
-            };
-            await searchAndDisplay(editor, inputBoxOptions);
-        } catch (error) {
-            vscode.window.showErrorMessage(error.message);
+    let jsonPathCommand = vscode.commands.registerTextEditorCommand(
+        'extension.jsonPath',
+        async (editor: vscode.TextEditor) => {
+            try {
+                let inputBoxOptions: Partial<InputBoxParameters> = {
+                    title: 'JSON path query',
+                    prompt: 'Enter JSON path',
+                    placeholder: '$.a[0].b.c',
+                    ignoreFocusOut: true
+                };
+                await searchAndDisplay(editor, inputBoxOptions);
+            } catch (error) {
+                vscode.window.showErrorMessage(error.message);
+            }
         }
-    });
+    );
+
+    let jsonPathWithNodesCommand = vscode.commands.registerTextEditorCommand(
+        'extension.jsonPathWithNodes',
+        async (editor: vscode.TextEditor) => {
+            try {
+                let inputBoxOptions: Partial<InputBoxParameters> = {
+                    title: 'JSON path with nodes',
+                    prompt: 'Enter JSON path',
+                    placeholder: '$.a[0].b.c',
+                    ignoreFocusOut: true
+                };
+                await searchAndDisplay(editor, inputBoxOptions, { nodes: true });
+            } catch (error) {
+                vscode.window.showErrorMessage(error.message);
+            }
+        }
+    );
 
     // Register command
     context.subscriptions.push(
-        jsonPathCommand
+        jsonPathCommand,
+        jsonPathWithNodesCommand
     );
 }
 
@@ -44,7 +65,15 @@ interface InputBoxParameters {
     ignoreFocusOut: boolean;
 }
 
-async function searchAndDisplay(editor: vscode.TextEditor, inputBoxOptions: Partial<InputBoxParameters>) {
+interface JsonPathOptions {
+    nodes: boolean;
+}
+
+async function searchAndDisplay(
+    editor: vscode.TextEditor,
+    inputBoxOptions: Partial<InputBoxParameters>,
+    jsonPathOptions?: JsonPathOptions
+) {
     const disposables: vscode.Disposable[] = [];
     try {
         return await new Promise((resolve, reject) => {
@@ -63,10 +92,11 @@ async function searchAndDisplay(editor: vscode.TextEditor, inputBoxOptions: Part
                 inputBox.onDidChangeValue(async text => {
                     if (text && text.length > 0) {
                         try {
-                            jsonMatches = getJsonMatches(editor, text);
+                            jsonMatches = getJsonMatches(editor, text, jsonPathOptions);
                         } catch (error) {
                             let errorMessage = error.message;
-                            if (errorMessage.indexOf('Parse error') > -1 || errorMessage.indexOf('Lexical error') > -1) {
+                            if (errorMessage.indexOf('Parse error') > -1 ||
+                                errorMessage.indexOf('Lexical error') > -1) {
                                 jsonMatches = []; // JSON path invalid, show 0 matches
                             } else {
                                 vscode.window.showErrorMessage(errorMessage);
@@ -94,7 +124,11 @@ async function searchAndDisplay(editor: vscode.TextEditor, inputBoxOptions: Part
     }
 }
 
-function getJsonMatches(editor: vscode.TextEditor, inputPath: string): string[] {
+function getJsonMatches(
+    editor: vscode.TextEditor,
+    inputPath: string,
+    jsonPathOptions?: Partial<JsonPathOptions>
+): string[] {
     // If user has selection, parse that.
     // Else, parse whole JSON file.
     let selection = editor.selection;
@@ -108,5 +142,14 @@ function getJsonMatches(editor: vscode.TextEditor, inputPath: string): string[] 
         }
         contents = JSON.parse(doc.getText());
     }
-    return jsonPath.query(contents, inputPath);
+    if (_.get(jsonPathOptions, 'nodes')) {
+        let nodes = jsonPath.nodes(contents, inputPath);
+        return nodes.map((node: { path: Array<string | number>, value: any }) => {
+            return {
+                [jsonPath.stringify(node.path)]: node.value
+            };
+        });
+    } else {
+        return jsonPath.query(contents, inputPath);
+    }
 }

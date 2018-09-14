@@ -20,7 +20,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.jsonPath"
+        "onCommand:extension.jsonPath",
+        "onCommand:extension.jsonPathWithNodes"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -28,6 +29,10 @@
             {
                 "command": "extension.jsonPath",
                 "title": "jsonpath: Extract JSON data"
+            },
+            {
+                "command": "extension.jsonPathWithNodes",
+                "title": "jsonpath: Extract JSON data with their paths"
             }
         ]
     },
