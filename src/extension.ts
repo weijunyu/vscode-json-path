@@ -17,34 +17,26 @@ export function activate(context: vscode.ExtensionContext) {
     let jsonPathCommand = vscode.commands.registerTextEditorCommand(
         'extension.jsonPath',
         async (editor: vscode.TextEditor) => {
-            try {
-                let inputBoxOptions: Partial<InputBoxParameters> = {
-                    title: 'JSON path query',
-                    prompt: 'Enter JSON path',
-                    placeholder: '$.a[0].b.c',
-                    ignoreFocusOut: true
-                };
-                await searchAndDisplay(editor, inputBoxOptions);
-            } catch (error) {
-                vscode.window.showErrorMessage(error.message);
-            }
+            let inputBoxOptions: Partial<InputBoxParameters> = {
+                title: 'JSON path query',
+                prompt: 'Enter JSON path',
+                placeholder: '$.a[0].b.c',
+                ignoreFocusOut: true
+            };
+            await searchAndDisplay(editor, inputBoxOptions);
         }
     );
 
     let jsonPathWithNodesCommand = vscode.commands.registerTextEditorCommand(
         'extension.jsonPathWithNodes',
         async (editor: vscode.TextEditor) => {
-            try {
-                let inputBoxOptions: Partial<InputBoxParameters> = {
-                    title: 'JSON path with nodes',
-                    prompt: 'Enter JSON path',
-                    placeholder: '$.a[0].b.c',
-                    ignoreFocusOut: true
-                };
-                await searchAndDisplay(editor, inputBoxOptions, { nodes: true });
-            } catch (error) {
-                vscode.window.showErrorMessage(error.message);
-            }
+            let inputBoxOptions: Partial<InputBoxParameters> = {
+                title: 'JSON path with nodes',
+                prompt: 'Enter JSON path',
+                placeholder: '$.a[0].b.c',
+                ignoreFocusOut: true
+            };
+            await searchAndDisplay(editor, inputBoxOptions, { nodes: true });
         }
     );
 
@@ -100,7 +92,7 @@ async function searchAndDisplay(
                                 jsonMatches = []; // JSON path invalid, show 0 matches
                             } else {
                                 vscode.window.showErrorMessage(errorMessage);
-                                throw error;
+                                return;
                             }
                         }
                         let uri = uriTools.encodeContent(editor.document.uri, jsonMatches);
