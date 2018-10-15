@@ -1,6 +1,6 @@
 {
     "name": "vscode-json-path",
-    "displayName": "JSON Path Queries",
+    "displayName": "JSON Path",
     "description": "Extract and find data in JSON structures with JSONPath queries",
     "version": "2.1.2",
     "publisher": "weijunyu",
