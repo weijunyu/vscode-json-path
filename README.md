@@ -2,6 +2,8 @@
 
 Use [JSONPath expressions](https://github.com/dchester/jsonpath#jsonpath-syntax) to extract and filter data from JSON objects.
 
+Check out https://github.com/stedolan/jq/wiki/For-JSONPath-users for a comparison between JSONPath and [jq](https://stedolan.github.io/jq/).
+
 ## Features
 Two commands are available through the [command palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). Type `jsonpath` to bring them up:
 

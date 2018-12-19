@@ -68,7 +68,7 @@ async function searchAndDisplay(
 ) {
     const disposables: vscode.Disposable[] = [];
     try {
-        return await new Promise((resolve, reject) => {
+        return await new Promise(() => {
             const inputBox: vscode.InputBox = vscode.window.createInputBox();
             inputBox.title = inputBoxOptions.title;
             inputBox.step = inputBoxOptions.step;
@@ -97,6 +97,11 @@ async function searchAndDisplay(
                         }
                         let uri = uriTools.encodeContent(editor.document.uri, jsonMatches);
                         let jsonDoc = await vscode.workspace.openTextDocument(uri);
+                        try {
+                            await vscode.languages.setTextDocumentLanguage(jsonDoc, 'json');
+                        } catch (error) {
+                            console.error(error);
+                        }
                         if (editor.viewColumn && editor.viewColumn < 4) {
                             vscode.window.showTextDocument(jsonDoc, {
                                 preserveFocus: true,
