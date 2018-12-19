@@ -10,7 +10,7 @@
     },
     "license": "MIT",
     "engines": {
-        "vscode": "^1.26.0"
+        "vscode": "^1.28.0"
     },
     "repository": {
         "type": "git",
