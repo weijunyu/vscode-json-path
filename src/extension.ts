@@ -67,6 +67,25 @@ async function searchAndDisplay(
     jsonPathOptions?: JsonPathOptions
 ) {
     const disposables: vscode.Disposable[] = [];
+
+    // If user has selection, parse that.
+    // Else, parse whole JSON file.
+    let selection = editor.selection;
+    let contents: object;
+    try {
+        if (!_.isEmpty(editor.document.getText(selection))) {
+            contents = JSON.parse(editor.document.getText(selection));
+        } else {
+            let doc = editor.document;
+            contents = JSON.parse(doc.getText());
+        }
+    } catch (exception) {
+        vscode.window.showErrorMessage(
+            'Error parsing JSON; please make sure it is properly formatted.'
+        );
+        return;
+    }
+
     try {
         return await new Promise(() => {
             const inputBox: vscode.InputBox = vscode.window.createInputBox();
@@ -84,7 +103,7 @@ async function searchAndDisplay(
                 inputBox.onDidChangeValue(async text => {
                     if (text && text.length > 0) {
                         try {
-                            jsonMatches = getJsonMatches(editor, text, jsonPathOptions);
+                            jsonMatches = getJsonMatches(contents, text, jsonPathOptions);
                         } catch (error) {
                             let errorMessage = error.message;
                             if (errorMessage.indexOf('Parse error') > -1 ||
@@ -103,7 +122,7 @@ async function searchAndDisplay(
                             console.error(error);
                         }
                         if (editor.viewColumn && editor.viewColumn < 4) {
-                            vscode.window.showTextDocument(jsonDoc, {
+                            await vscode.window.showTextDocument(jsonDoc, {
                                 preserveFocus: true,
                                 viewColumn: editor.viewColumn + 1
                             });
@@ -122,23 +141,10 @@ async function searchAndDisplay(
 }
 
 function getJsonMatches(
-    editor: vscode.TextEditor,
+    contents: object,
     inputPath: string,
     jsonPathOptions?: Partial<JsonPathOptions>
 ): string[] {
-    // If user has selection, parse that.
-    // Else, parse whole JSON file.
-    let selection = editor.selection;
-    let contents;
-    if (!_.isEmpty(editor.document.getText(selection))) {
-        contents = JSON.parse(editor.document.getText(selection));
-    } else {
-        let doc = editor.document;
-        if (doc.languageId !== 'json') {
-            throw new Error("Document type is not JSON");
-        }
-        contents = JSON.parse(doc.getText());
-    }
     if (_.get(jsonPathOptions, 'nodes')) {
         let nodes = jsonPath.nodes(contents, inputPath);
         return nodes.map((node: { path: Array<string | number>, value: any }) => {
