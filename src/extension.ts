@@ -66,26 +66,17 @@ async function searchAndDisplay(
     inputBoxOptions: Partial<InputBoxParameters>,
     jsonPathOptions?: JsonPathOptions
 ) {
-    const disposables: vscode.Disposable[] = [];
-
-    // If user has selection, parse that.
-    // Else, parse whole JSON file.
-    let selection = editor.selection;
+    const disposables: vscode.Disposable[] = [];   
     let contents: object;
-    try {
-        if (!_.isEmpty(editor.document.getText(selection))) {
-            contents = JSON.parse(editor.document.getText(selection));
-        } else {
-            let doc = editor.document;
-            contents = JSON.parse(doc.getText());
-        }
+    try {        
+        let doc = editor.document;
+        contents = JSON.parse(doc.getText());
     } catch (exception) {
         vscode.window.showErrorMessage(
             'Error parsing JSON; please make sure it is properly formatted.'
         );
         return;
     }
-
     try {
         return await new Promise(() => {
             const inputBox: vscode.InputBox = vscode.window.createInputBox();

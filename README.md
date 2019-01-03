@@ -1,5 +1,7 @@
 # [jsonpath](https://github.com/dchester/jsonpath) extension for [Visual Studio Code](https://code.visualstudio.com/)
 
+[![](https://img.shields.io/vscode-marketplace/v/weijunyu.vscode-json-path.svg)](https://marketplace.visualstudio.com/items?itemName=weijunyu.vscode-json-path)
+
 Use [JSONPath expressions](https://github.com/dchester/jsonpath#jsonpath-syntax) to extract and filter data from JSON objects.
 
 Check out https://github.com/stedolan/jq/wiki/For-JSONPath-users for a comparison between JSONPath and [jq](https://stedolan.github.io/jq/).
