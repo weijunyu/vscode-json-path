@@ -44,15 +44,15 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "dependencies": {
-        "lodash": "^4.17.10",
-        "jsonpath": "^1.0.0"
+        "jsonpath": "^1.0.1",
+        "lodash": "^4.17.11"
     },
     "devDependencies": {
-        "typescript": "^3.0.0",
-        "vscode": "^1.1.21",
-        "tslint": "^5.8.0",
+        "@types/mocha": "^2.2.42",
         "@types/node": "^8.10.25",
-        "@types/mocha": "^2.2.42"
+        "tslint": "^5.8.0",
+        "typescript": "^3.0.0",
+        "vscode": "^1.1.34"
     },
     "icon": "icon.png"
 }
