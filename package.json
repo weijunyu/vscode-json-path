@@ -1,47 +1,23 @@
 {
     "name": "vscode-json-path",
-    "displayName": "JSON Path",
-    "description": "Extract and find data in JSON structures with JSONPath queries",
     "version": "2.2.7",
-    "publisher": "weijunyu",
-    "author": {
-        "name": "Wei Junyu",
-        "email": "junyuwei@gmail.com"
-    },
-    "license": "MIT",
-    "engines": {
-        "vscode": "^1.28.0"
-    },
+    "description": "Extract and find data in JSON structures with JSONPath queries",
     "repository": {
         "type": "git",
         "url": "https://github.com/weijunyu/vscode-json-path.git"
     },
-    "categories": [
-        "Other"
-    ],
-    "activationEvents": [
-        "onCommand:extension.jsonPath",
-        "onCommand:extension.jsonPathWithNodes"
-    ],
-    "main": "./out/extension",
-    "contributes": {
-        "commands": [
-            {
-                "command": "extension.jsonPath",
-                "title": "jsonpath: Extract JSON data"
-            },
-            {
-                "command": "extension.jsonPathWithNodes",
-                "title": "jsonpath: Extract JSON data with their paths"
-            }
-        ]
+    "license": "MIT",
+    "author": {
+        "name": "Wei Junyu",
+        "email": "junyuwei@gmail.com"
     },
+    "main": "./out/extension",
     "scripts": {
-        "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "vscode:prepublish": "npm run compile",
+        "watch": "tsc -watch -p ./"
     },
     "dependencies": {
         "jsonpath": "^1.0.2",
@@ -54,5 +30,34 @@
         "typescript": "^3.5.3",
         "vscode": "^1.1.35"
     },
-    "icon": "icon.png"
+    "engines": {
+        "vscode": "^1.28.0"
+    },
+    "activationEvents": [
+        "onCommand:extension.jsonPath",
+        "onCommand:extension.jsonPathWithNodes",
+        "onCommand:extension.startTask"
+    ],
+    "categories": [
+        "Other"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "extension.jsonPath",
+                "title": "jsonpath: Extract JSON data"
+            },
+            {
+                "command": "extension.jsonPathWithNodes",
+                "title": "jsonpath: Extract JSON data with their paths"
+            },
+            {
+                "command": "extension.startTask",
+                "title": "Start task that shows progress"
+            }
+        ]
+    },
+    "displayName": "JSON Path",
+    "icon": "icon.png",
+    "publisher": "weijunyu"
 }
