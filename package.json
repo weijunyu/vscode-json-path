@@ -20,8 +20,7 @@
         "watch": "tsc -watch -p ./"
     },
     "dependencies": {
-        "jsonpath": "^1.0.2",
-        "lodash": "^4.17.15"
+        "jsonpath": "^1.0.2"
     },
     "devDependencies": {
         "@types/mocha": "^5.2.7",
@@ -35,8 +34,7 @@
     },
     "activationEvents": [
         "onCommand:extension.jsonPath",
-        "onCommand:extension.jsonPathWithNodes",
-        "onCommand:extension.startTask"
+        "onCommand:extension.jsonPathWithNodes"
     ],
     "categories": [
         "Other"
@@ -50,10 +48,6 @@
             {
                 "command": "extension.jsonPathWithNodes",
                 "title": "jsonpath: Extract JSON data with their paths"
-            },
-            {
-                "command": "extension.startTask",
-                "title": "Start task that shows progress"
             }
         ]
     },
