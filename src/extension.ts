@@ -26,7 +26,78 @@ export function activate(context: vscode.ExtensionContext) {
                 placeholder: "$.a[0].b.c",
                 ignoreFocusOut: true
             };
-            await searchAndDisplay(editor, inputBoxOptions);
+            let contents: object | Array<any>; // JSON file contents
+            try {
+                let doc = editor.document;
+                contents = JSON.parse(doc.getText());
+            } catch (exception) {
+                vscode.window.showErrorMessage(
+                    "Error parsing JSON; please make sure it is properly formatted."
+                );
+                return;
+            }
+            const inputText = await vscode.window.showInputBox(inputBoxOptions);
+            if (inputText && inputText.length > 0) {
+                let searchPromise: Thenable<
+                    string[]
+                > = vscode.window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: "Parsing JSON path...",
+                        cancellable: true
+                    },
+                    (progress, token) => {
+                        token.onCancellationRequested(() => {
+                            console.log(
+                                "User canceled the long running operation"
+                            );
+                        });
+                        return new Promise((resolve, reject) => {
+                            try {
+                                let matches = getJsonMatches(
+                                    contents,
+                                    inputText
+                                );
+                                resolve(matches);
+                            } catch (error) {
+                                let errorMessage = error.message;
+                                if (
+                                    errorMessage.indexOf("Parse error") > -1 ||
+                                    errorMessage.indexOf("Lexical error") > -1
+                                ) {
+                                    resolve([]); // JSON path invalid, show 0 matches
+                                } else {
+                                    vscode.window.showErrorMessage(
+                                        errorMessage
+                                    );
+                                    reject(error);
+                                }
+                            }
+                        });
+                    }
+                );
+                searchPromise.then(async (jsonMatches: string[]) => {
+                    let uri = uriTools.encodeContent(
+                        editor.document.uri,
+                        jsonMatches
+                    );
+                    let jsonDoc = await vscode.workspace.openTextDocument(uri);
+                    try {
+                        await vscode.languages.setTextDocumentLanguage(
+                            jsonDoc,
+                            "json"
+                        );
+                    } catch (error) {
+                        console.error(error);
+                    }
+                    if (editor.viewColumn && editor.viewColumn < 4) {
+                        await vscode.window.showTextDocument(jsonDoc, {
+                            preserveFocus: true,
+                            viewColumn: editor.viewColumn + 1
+                        });
+                    }
+                });
+            }
         }
     );
 
@@ -45,55 +116,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register command
     context.subscriptions.push(jsonPathCommand, jsonPathWithNodesCommand);
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand("extension.startTask", () => {
-            vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: "I am long running!",
-                    cancellable: true
-                },
-                (progress, token) => {
-                    token.onCancellationRequested(() => {
-                        console.log("User canceled the long running operation");
-                    });
-
-                    progress.report({ increment: 0 });
-
-                    setTimeout(() => {
-                        progress.report({
-                            increment: 10,
-                            message: "I am long running! - still going..."
-                        });
-                    }, 1000);
-
-                    setTimeout(() => {
-                        progress.report({
-                            increment: 40,
-                            message:
-                                "I am long running! - still going even more..."
-                        });
-                    }, 2000);
-
-                    setTimeout(() => {
-                        progress.report({
-                            increment: 50,
-                            message: "I am long running! - almost there..."
-                        });
-                    }, 3000);
-
-                    var p = new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve();
-                        }, 5000);
-                    });
-
-                    return p;
-                }
-            );
-        })
-    );
 }
 
 interface InputBoxParameters {
@@ -115,7 +137,7 @@ async function searchAndDisplay(
     inputBoxOptions: Partial<InputBoxParameters>,
     jsonPathOptions?: JsonPathOptions
 ) {
-    const disposables: vscode.Disposable[] = [];
+    // const disposables: vscode.Disposable[] = [];
     let contents: object | Array<any>; // JSON file contents
     try {
         let doc = editor.document;
