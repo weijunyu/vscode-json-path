@@ -2,7 +2,8 @@ import * as vscode from "vscode";
 import DocProvider from "./DocProvider";
 import uriTools from "./uriTools";
 
-const jsonPath = require("jsonpath");
+const workerFarm = require("worker-farm");
+const searchWorker = workerFarm(require.resolve("./searchWorker"));
 
 export function activate(context: vscode.ExtensionContext) {
     let JsonDocProvider = new DocProvider();
@@ -91,29 +92,6 @@ interface InputBoxParameters {
     ignoreFocusOut: boolean;
 }
 
-interface JsonPathOptions {
-    nodes: boolean;
-}
-
-function getJsonMatches(
-    contents: object,
-    inputPath: string,
-    jsonPathOptions: JsonPathOptions
-): string[] {
-    if (jsonPathOptions.nodes) {
-        let nodes = jsonPath.nodes(contents, inputPath);
-        return nodes.map(
-            (node: { path: Array<string | number>; value: any }) => {
-                return {
-                    [jsonPath.stringify(node.path)]: node.value
-                };
-            }
-        );
-    } else {
-        return jsonPath.query(contents, inputPath);
-    }
-}
-
 async function searchAndDisplayResults(
     { inputText, contents, nodes = false }: SearchOptions,
     editor: vscode.TextEditor
@@ -125,27 +103,30 @@ async function searchAndDisplayResults(
             cancellable: true
         },
         (progress, token) => {
-            token.onCancellationRequested(() => {
-                console.log("User canceled the long running operation");
-            });
+            token.onCancellationRequested(() => {});
             return new Promise((resolve, reject) => {
-                try {
-                    let matches = getJsonMatches(contents, inputText, {
-                        nodes
-                    });
-                    resolve(matches);
-                } catch (error) {
-                    let errorMessage = error.message;
-                    if (
-                        errorMessage.indexOf("Parse error") > -1 ||
-                        errorMessage.indexOf("Lexical error") > -1
-                    ) {
-                        resolve([]); // JSON path invalid, show 0 matches
-                    } else {
-                        vscode.window.showErrorMessage(errorMessage);
-                        reject(error);
+                searchWorker(
+                    {
+                        contents,
+                        inputText
+                    },
+                    { nodes },
+                    (err: any, output: any) => {
+                        if (err) {
+                            let errorMessage = err.message;
+                            if (
+                                errorMessage.indexOf("Parse error") > -1 ||
+                                errorMessage.indexOf("Lexical error") > -1
+                            ) {
+                                resolve([]); // JSON path invalid, show 0 matches
+                            } else {
+                                vscode.window.showErrorMessage(errorMessage);
+                                reject(err);
+                            }
+                        }
+                        resolve(output);
                     }
-                }
+                );
             });
         }
     );
