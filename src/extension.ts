@@ -115,11 +115,11 @@ async function searchAndDisplayResults(
                 errorMessage.indexOf("Parse error") > -1 ||
                 errorMessage.indexOf("Lexical error") > -1
               ) {
-                resolve([]); // JSON path invalid, show 0 matches
-              } else {
-                vscode.window.showErrorMessage(errorMessage);
-                reject(err);
+                errorMessage =
+                  "Please make sure your JSON path expression is valid!";
               }
+              vscode.window.showErrorMessage(errorMessage);
+              reject(err);
             }
             resolve(output);
           }
