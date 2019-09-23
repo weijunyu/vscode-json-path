@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
         placeholder: "$.a[0].b.c",
         ignoreFocusOut: true
       };
-      let contents: object | Array<any>; // JSON file contents
+      let contents: object | any[]; // JSON file contents
       try {
         let doc = editor.document;
         contents = JSON.parse(doc.getText());
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
         placeholder: "$.a[0].b.c",
         ignoreFocusOut: true
       };
-      let contents: object | Array<any>; // JSON file contents
+      let contents: object | any[]; // JSON file contents
       try {
         let doc = editor.document;
         contents = JSON.parse(doc.getText());
@@ -75,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 interface SearchOptions {
   inputText: string;
-  contents: object | Array<any>;
+  contents: object | any[];
   nodes?: boolean;
 }
 
@@ -99,8 +99,7 @@ async function searchAndDisplayResults(
       title: "Parsing JSON path...",
       cancellable: true
     },
-    (progress, token) => {
-      token.onCancellationRequested(() => {});
+    () => {
       return new Promise((resolve, reject) => {
         searchWorker(
           {

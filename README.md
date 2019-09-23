@@ -7,17 +7,17 @@ Use [JSONPath expressions](https://github.com/dchester/jsonpath#jsonpath-syntax)
 Check out https://github.com/stedolan/jq/wiki/For-JSONPath-users for a comparison between JSONPath and [jq](https://stedolan.github.io/jq/).
 
 ## Features
-Two commands are available through the [command palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). Type `jsonpath` to bring them up:
+Two commands are available through the [command palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). With a .json file open, type `jsonpath` to bring them up:
 
-- Extract JSON data: real-time results of JSONPath queries. For JSON files.
+### `jsonPath: Extract JSON data` 
 
-![demo_query](docs/demo_query.gif)
+Filter JSON data.
 
-- Extract JSON data with their paths: real-time results of JSONPath queries, together with path to matches. For JSON files.
+### `jsonPath: Extract JSON data with their paths` 
 
-![demo_nodes](docs/demo_nodes.gif)
+Filter JSON data and display the path to filtered data.
 
-- Also supports searching for any highlighted JSON-formatted text, regardless of file type.
+![demo](demo.gif)
 
 ## Dependencies
 - [JSONPath library](https://github.com/dchester/jsonpath) from dchester: Query and manipulate JavaScript objects with JSONPath expressions. Robust JSONPath engine for Node.js.
