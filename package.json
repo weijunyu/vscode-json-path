@@ -11,7 +11,7 @@
     "name": "Wei Junyu",
     "email": "junyuwei@gmail.com"
   },
-  "main": "./out/extension",
+  "main": "./out/extension.js",
   "scripts": {
     "compile": "tsc -p ./",
     "pretest": "npm run compile",
@@ -35,7 +35,7 @@
     "vscode-test": "^1.2.0"
   },
   "engines": {
-    "vscode": "^1.37.0"
+    "vscode": "^1.38.0"
   },
   "activationEvents": [
     "onCommand:extension.jsonPath",
