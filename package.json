@@ -1,6 +1,6 @@
 {
   "name": "vscode-json-path",
-  "version": "2.2.7",
+  "version": "2.3.0",
   "description": "Extract and find data in JSON structures with JSONPath queries",
   "repository": {
     "type": "git",
