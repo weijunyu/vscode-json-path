@@ -1,9 +1,13 @@
+import * as fs from "fs";
+import * as util from "util";
 import * as vscode from "vscode";
 import DocProvider from "./DocProvider";
 import uriTools from "./uriTools";
 
 const workerFarm = require("worker-farm");
 const searchWorker = workerFarm(require.resolve("./searchWorker"));
+
+const stat = util.promisify(fs.stat);
 
 export function activate(context: vscode.ExtensionContext) {
   let JsonDocProvider = new DocProvider();
@@ -29,11 +33,10 @@ export function activate(context: vscode.ExtensionContext) {
       let contents: object | any[]; // JSON file contents
       try {
         let doc = editor.document;
+        await checkDocument(doc);
         contents = JSON.parse(doc.getText());
-      } catch (exception) {
-        vscode.window.showErrorMessage(
-          "Error parsing JSON; please make sure it is properly formatted."
-        );
+      } catch (err) {
+        vscode.window.showErrorMessage(`Error parsing JSON: ${err.message}`);
         return;
       }
       const inputText = await vscode.window.showInputBox(inputBoxOptions);
@@ -55,11 +58,10 @@ export function activate(context: vscode.ExtensionContext) {
       let contents: object | any[]; // JSON file contents
       try {
         let doc = editor.document;
+        await checkDocument(doc);
         contents = JSON.parse(doc.getText());
-      } catch (exception) {
-        vscode.window.showErrorMessage(
-          "Error parsing JSON; please make sure it is properly formatted."
-        );
+      } catch (err) {
+        vscode.window.showErrorMessage(`Error parsing JSON: ${err.message}`);
         return;
       }
       const inputText = await vscode.window.showInputBox(inputBoxOptions);
@@ -87,6 +89,23 @@ interface InputBoxParameters {
   prompt: string;
   placeholder: string;
   ignoreFocusOut: boolean;
+}
+
+async function checkDocument(doc: vscode.TextDocument) {
+  // Check file size and prompt for confirmation
+  if (doc.uri.scheme === "file") {
+    if (!doc.uri.fsPath.endsWith(".json")) {
+      throw new Error("file is not json.");
+    }
+    let fileStats = await stat(doc.uri.fsPath);
+    let fileSizeInBytes = fileStats.size;
+    if (fileSizeInBytes > 3000000) {
+      // If over 3MB
+      vscode.window.showWarningMessage(
+        "Warning: this is a large file! Your JSON path query may take a long time to run."
+      );
+    }
+  }
 }
 
 async function searchAndDisplayResults(
