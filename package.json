@@ -32,7 +32,7 @@
     "mocha": "^6.1.4",
     "tslint": "^5.18.0",
     "typescript": "^3.5.3",
-    "vscode-test": "^1.2.0"
+    "vscode-test": "^1.2.3"
   },
   "engines": {
     "vscode": "^1.38.0"
