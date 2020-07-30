@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as util from "util";
 import * as vscode from "vscode";
 import DocProvider from "./DocProvider";
-import uriTools from "./uriTools";
 
 const workerFarm = require("worker-farm");
 const searchWorker = workerFarm(require.resolve("./searchWorker"));
@@ -24,13 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
   let jsonPathCommand = vscode.commands.registerTextEditorCommand(
     "extension.jsonPath",
     async (editor: vscode.TextEditor) => {
-      let inputBoxOptions: Partial<InputBoxParameters> = {
-        title: "JSON path query",
-        prompt: "Enter JSON path",
-        placeholder: "$.a[0].b.c",
-        ignoreFocusOut: true
-      };
-      let contents: object | any[]; // JSON file contents
+      let contents: object | Array<any>; // JSON file contents
       try {
         let doc = editor.document;
         await checkDocument(doc);
@@ -39,6 +32,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage(`Error parsing JSON: ${err.message}`);
         return;
       }
+
+      let inputBoxOptions: Partial<InputBoxParameters> = {
+        prompt: "Enter JSON path",
+        placeholder: "$.a[0].b.c",
+        ignoreFocusOut: true,
+      };
       const inputText = await vscode.window.showInputBox(inputBoxOptions);
       if (inputText && inputText.length > 0) {
         searchAndDisplayResults({ inputText, contents }, editor);
@@ -49,13 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
   let jsonPathWithNodesCommand = vscode.commands.registerTextEditorCommand(
     "extension.jsonPathWithNodes",
     async (editor: vscode.TextEditor) => {
-      let inputBoxOptions: Partial<InputBoxParameters> = {
-        title: "JSON path with nodes",
-        prompt: "Enter JSON path",
-        placeholder: "$.a[0].b.c",
-        ignoreFocusOut: true
-      };
-      let contents: object | any[]; // JSON file contents
+      let contents: object | Array<any>; // JSON file contents
       try {
         let doc = editor.document;
         await checkDocument(doc);
@@ -64,6 +57,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage(`Error parsing JSON: ${err.message}`);
         return;
       }
+
+      let inputBoxOptions: Partial<InputBoxParameters> = {
+        prompt: "Enter JSON path",
+        placeholder: "$.a[0].b.c",
+        ignoreFocusOut: true,
+      };
       const inputText = await vscode.window.showInputBox(inputBoxOptions);
       if (inputText && inputText.length > 0) {
         searchAndDisplayResults({ inputText, contents, nodes: true }, editor);
@@ -116,14 +115,14 @@ async function searchAndDisplayResults(
     {
       location: vscode.ProgressLocation.Notification,
       title: "Parsing JSON path...",
-      cancellable: true
+      cancellable: true,
     },
     () => {
       return new Promise((resolve, reject) => {
         searchWorker(
           {
             contents,
-            inputText
+            inputText,
           },
           { nodes },
           (err: any, output: any) => {
@@ -146,7 +145,7 @@ async function searchAndDisplayResults(
     }
   );
   searchPromise.then(async (jsonMatches: string[]) => {
-    let uri = uriTools.encodeContent(editor.document.uri, jsonMatches);
+    let uri = DocProvider.encodeContent(jsonMatches);
     let jsonDoc = await vscode.workspace.openTextDocument(uri);
     try {
       await vscode.languages.setTextDocumentLanguage(jsonDoc, "json");
@@ -155,9 +154,36 @@ async function searchAndDisplayResults(
     }
     if (editor.viewColumn && editor.viewColumn < 4) {
       await vscode.window.showTextDocument(jsonDoc, {
-        preserveFocus: true,
-        viewColumn: editor.viewColumn + 1
+        preserveFocus: false,
+        viewColumn: editor.viewColumn + 1,
       });
+      showQueryInfoInStatusBar(inputText);
     }
   });
+}
+
+function showQueryInfoInStatusBar(jpQuery: string, timeout = 9) {
+  const progressDone = `⣀`;
+  const progressLeft = `⣿`;
+  let progress = 0;
+
+  const statusBarInfo = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left
+  );
+  statusBarInfo.text = `JSON Path query executed: "${jpQuery}"\t${progressDone.repeat(
+    progress
+  )}${progressLeft.repeat(timeout - 1 - progress)}`;
+  statusBarInfo.show();
+
+  const statusBarUpdateInterval = setInterval(() => {
+    progress++;
+    statusBarInfo.text = `JSON Path query executed: "${jpQuery}"\t${progressDone.repeat(
+      progress
+    )}${progressLeft.repeat(timeout - 1 - progress)}`;
+  }, 1000);
+
+  setTimeout(() => {
+    clearInterval(statusBarUpdateInterval);
+    statusBarInfo.dispose();
+  }, timeout * 1000);
 }
