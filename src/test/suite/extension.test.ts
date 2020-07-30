@@ -6,7 +6,6 @@ import { before } from "mocha";
 import * as vscode from "vscode";
 // import * as myExtension from '../extension';
 
-import uriTools from "../../uriTools";
 import DocProvider from "../../DocProvider";
 
 suite("Extension Test Suite", () => {
@@ -15,18 +14,11 @@ suite("Extension Test Suite", () => {
   });
 
   test("can encode URI", () => {
-    let docUri = vscode.Uri.parse("file:///path/to/my/doc.json");
     let content = {
-      test: "content"
+      test: "content",
     };
-    let encodedUri: vscode.Uri = uriTools.encodeContent(docUri, content);
+    let encodedUri: vscode.Uri = DocProvider.encodeContent(content);
     assert.equal(encodedUri.scheme, DocProvider.scheme);
-    assert.equal(
-      encodedUri.query,
-      JSON.stringify({
-        documentUri: docUri,
-        content: content
-      })
-    );
+    assert.equal(encodedUri.query, JSON.stringify(content));
   });
 });
